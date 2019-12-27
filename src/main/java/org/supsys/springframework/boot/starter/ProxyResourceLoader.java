@@ -6,8 +6,10 @@ import java.net.URL;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.util.Assert;
 
 public class ProxyResourceLoader extends DefaultResourceLoader {
 
@@ -20,6 +22,14 @@ public class ProxyResourceLoader extends DefaultResourceLoader {
 
     @Override
     public Resource getResource(String location) {
+        Assert.notNull(location, "Location must not be null");
+		for (ProtocolResolver protocolResolver : this.getProtocolResolvers()) {
+			Resource resource = protocolResolver.resolve(location, this);
+			if (resource != null) {
+				return resource;
+			}
+		}
+
 		if (location.startsWith("/")) {
 			return getResourceByPath(location);
 		}
